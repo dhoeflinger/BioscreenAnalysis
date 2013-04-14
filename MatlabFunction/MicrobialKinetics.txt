@@ -1,0 +1,33 @@
+function [ lag_time, max_spec_growth_rate, OD_max, doubling_time ] = MicrobialKinetics(OD_values)
+%UNTITLED Summary of this function goes here
+%  time interval assumed to be half hour time blocks
+
+%set to zero initially
+max_spec_growth_rate = 0;
+
+% why should this jump by increments of 4, wouldnt it be more accurate to
+% take the slope at each time point?
+for i=1:4:size(OD_values)
+
+    if (i > 4) % if I have a time point 2 hours behind this one
+        if (OD_values(i) > 0 && OD_values(i-4) > 0) %and both OD reading is above 0 (to not screw up the log calc)
+          %find the slope at each time point with a two hour interval     
+          slope  =  (log(OD_values(i)) - log(OD_values(i-4)))/2;
+   
+          %if the slope is greater than the current max, set it to be the
+          %max and record the current time as the lag time
+          if (slope > max_spec_growth_rate)
+              max_spec_growth_rate = slope;
+              % lag_time, this is wrong, but follows the convention
+              % described in an email.  how should this be calculated?
+              lag_time = (i-2)/2;     
+          end    
+      end
+    end
+end
+
+%find the max OD value
+OD_max = max(OD_values);
+
+%use the max specific growth rate to calc the doubling time t_d = ln(2)/u
+doubling_time = log(2) / max_spec_growth_rate;
