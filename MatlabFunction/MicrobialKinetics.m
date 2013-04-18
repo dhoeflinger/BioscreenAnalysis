@@ -1,4 +1,4 @@
-function [ lag_time, max_spec_growth_rate, OD_max, doubling_time, note ] = MicrobialKinetics(OD_values, time_interval, threshold)
+function [ lag_time, max_spec_growth_rate, OD_max, doubling_time, note ] = MicrobialKinetics(OD_values, time_interval, threshold, model)
 %UNTITLED Summary of this function goes here
 %  time interval assumed to be half hour time blocks
 
@@ -37,7 +37,7 @@ end
 
 
 non_log_slope =0;
-[lag_time max_spec_growth_rate] = FindRegressionCurve(OD_values(1:index),time_interval);
+[lag_time max_spec_growth_rate] = FindRegressionCurve(OD_values(1:index),time_interval, model);
 
 
 %this is the old way

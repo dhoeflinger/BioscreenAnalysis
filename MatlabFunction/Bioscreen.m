@@ -1,9 +1,17 @@
-function Bioscreen( excel_file_name, excel_output_file, max_timepoint, growth_threshold)
+function Bioscreen( excel_file_name, excel_output_file, max_timepoint, growth_threshold, model)
 %READEXCEL Summary of this function goes here
 %   Detailed explanation goes here
 
 if (nargin < 3)
     max_timepoint = -1;
+end
+
+if (nargin < 4)
+    growth_threshold = 0.2;
+end
+
+if (nargin < 5)
+    model = 'modgompertz';
 end
 
 [Data, title_data] = xlsread(excel_file_name);
@@ -47,9 +55,9 @@ for i=1:dims(2)
         strain = char(title_data(2,i));
         h = figure;
         if (max_timepoint < 0)
-            [lagtime, max_u, OD_max, doubling_time, note] = MicrobialKinetics(Data(:,i), time_interval, growth_threshold);
+            [lagtime, max_u, OD_max, doubling_time, note] = MicrobialKinetics(Data(:,i), time_interval, growth_threshold, model);
         else
-            [lagtime, max_u, OD_max, doubling_time, note] = MicrobialKinetics(Data(1:max_timepoint/time_interval,i), time_interval, growth_threshold);
+            [lagtime, max_u, OD_max, doubling_time, note] = MicrobialKinetics(Data(1:max_timepoint/time_interval,i), time_interval, growth_threshold, model);
         end
         lag_times(i) = lagtime;
         output(i,:) = {sugar,strain, lagtime, max_u, OD_max, doubling_time, note};
