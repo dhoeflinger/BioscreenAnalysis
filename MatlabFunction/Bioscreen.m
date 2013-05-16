@@ -1,6 +1,14 @@
 function Bioscreen( excel_file_name, excel_output_file, max_timepoint, growth_threshold, model)
-%READEXCEL Summary of this function goes here
-%   Detailed explanation goes here
+%Bioscreen - Calculates some metrics for growth curves, as well as graphing
+% a regression curve of the data points. 
+%PARAMS: 
+% excel_file_name - input data file, must be formatted properly
+% excel_output_file - output data file, contains summary of statistics for growth curves
+% max_timepoint - final timepoint of the dataset
+% growth_threshold - threshold which describes the minimum OD reading to signify growth (default 0.2)
+% model - regression model to plot the curves, options are 'modgompertz' (default),
+%         'gompertz', 'logistic', and 'modlogistic'
+% 
 
 if (nargin < 3)
     max_timepoint = -1;
