@@ -43,9 +43,9 @@ max_od_adj = max(OD_values_adj);
 if (strcmpi(model, 'gompertz'))
       
     %Gompertz curve
-    func = fittype('A * exp( -exp(-C*(x-B)))');
+    func = fittype('A * exp( -exp(-C*(x-B)))+D');
 
-    reg_curve = fit(timepoints', OD_values_adj', func, 'Lower', [0 0 0], 'Upper', [100 100 10], 'StartPoint', [0.5 1.5 0.5]);
+    reg_curve = fit(timepoints', OD_values_adj', func, 'Lower', [0 0 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
 
     inflection_point = reg_curve.B;
     msgr = reg_curve.C;
@@ -58,9 +58,9 @@ if (strcmpi(model, 'gompertz'))
 
 elseif (strcmpi(model, 'modgompertz'))
     %modified Gompertz curve
-    func = fittype('A * exp(-exp(((B * exp(1))/ A) * (C - x) + 1))');
+    func = fittype('A * exp(-exp(((B * exp(1))/ A) * (C - x) + 1)) + D');
 
-    reg_curve = fit(timepoints', OD_values_adj', func, 'Lower', [0 -0.5 0], 'Upper', [100 100 10], 'StartPoint', [0.5 1.5 0.5]);
+    reg_curve = fit(timepoints', OD_values_adj', func, 'Lower', [0 -0.5 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
 
     lag_time = reg_curve.B;
     msgr = reg_curve.C;
@@ -68,9 +68,9 @@ elseif (strcmpi(model, 'modgompertz'))
 
 elseif (strcmpi(model, 'logistic'))
     %Logistic curve
-    func = fittype('A / (1+exp(-C*(x-B)))');
+    func = fittype('A / (1+exp(-C*(x-B))) + D');
     
-    reg_curve = fit(timepoints', OD_values_adj', func, 'Lower', [0 0 0], 'Upper', [100 100 10], 'StartPoint', [0.5 1.5 0.5]);
+    reg_curve = fit(timepoints', OD_values_adj', func, 'Lower', [0 0 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
 
     inflection_point = reg_curve.B;
     msgr = reg_curve.C;
@@ -85,9 +85,9 @@ elseif (strcmpi(model, 'logistic'))
 elseif (strcmpi(model, 'modlogistic'))
 
     %Modified Logistic curve
-    func = fittype('A / (1 + exp(((4*C)/A) * (B - x) + 2))');
+    func = fittype('A / (1 + exp(((4*C)/A) * (B - x) + 2)) + D');
     
-    reg_curve = fit(timepoints', OD_values_adj', func, 'Lower', [0 -0.5 0], 'Upper', [100 100 10], 'StartPoint', [0.5 1.5 0.5]);
+    reg_curve = fit(timepoints', OD_values_adj', func, 'Lower', [0 -0.5 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
 
     lag_time = reg_curve.B;
     msgr = reg_curve.C;
