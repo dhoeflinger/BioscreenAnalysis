@@ -17,10 +17,7 @@ doubling_time = 0;
 %find the min OD value 
 [OD_min, min_index] = min(OD_values);
 
-OD_values_adj = OD_values;
-for i=index+2:size(OD_values_adj)
-    OD_values_adj(i) = OD_values(index+2);
-end
+
 
     
 absolute_no_growth_threshold = threshold;
@@ -42,7 +39,7 @@ end
 
 
 non_log_slope =0;
-[lag_time max_spec_growth_rate] = FindRegressionCurve(OD_values_adj,time_interval, model);
+[lag_time max_spec_growth_rate] = FindRegressionCurve(OD_values,time_interval, model);
 
 
 %this is the old way

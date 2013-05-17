@@ -6,13 +6,18 @@ end;
     
 timepoints = (1:size(OD_values)) * time_interval;
 min_od = min(OD_values);
+[~, max_index] = max(OD_values);
 
 OD_values_adj(size(OD_values)) = 0;
 log_OD_values(size(OD_values)) = 0;
 
 for i=1:size(OD_values)
-    OD_values_adj(i) = OD_values(i) - min_od;
-    log_OD_values(i) = log(OD_values_adj(i) + 0.1);
+    if (i < max_index +2)
+        OD_values_adj(i) = OD_values(i) - min_od; 
+    else
+        OD_values_adj(i) = OD_values(max_index+1);      
+    end
+    log_OD_values(i) = log(OD_values_adj(i) + 0.01);
 end;
 
 
@@ -114,7 +119,7 @@ lag_time = max([lag_time 0]);
 xlist = [lag_time lag_time];
 ylist = [max_od_adj/4 0];
 
-plot (reg_curve, timepoints, OD_values_adj);
+plot (reg_curve, timepoints, OD_values);
 hold on 
 
 %plot (timepoints, log_OD_values);
