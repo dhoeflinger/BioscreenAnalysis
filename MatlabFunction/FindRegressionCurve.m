@@ -104,7 +104,7 @@ elseif (strcmpi(model, 'modlogistic'))
     %Modified Logistic curve
     func = fittype('A / (1 + exp(((4*C)/A) * (B - x) + 2)) + D');
     
-    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 -0.5 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
+    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 -0.5 0 0], 'Upper', [100 100 3 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
     size_tmp = size(OD_values_adj);
 %     for id=1:size_tmp
 %         timepoints_t = timepoints;

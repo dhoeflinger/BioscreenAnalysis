@@ -1,32 +1,33 @@
-function Bioscreen( excel_file_name, excel_output_file, max_timepoint, growth_threshold, model)
+function Bioscreen( excel_file_name, max_timepoint, growth_threshold, model)
 %Bioscreen - Calculates some metrics for growth curves, as well as graphing
 % a regression curve of the data points. 
 %PARAMS: 
 % excel_file_name - input data file, must be formatted properly
-% excel_output_file - output data file, contains summary of statistics for growth curves
 % max_timepoint - final timepoint of the dataset
 % growth_threshold - threshold which describes the minimum OD reading to signify growth (default 0.2)
 % model - regression model to plot the curves, options are 'modgompertz' (default),
 %         'gompertz', 'logistic', and 'modlogistic'
 % 
 
-if (nargin < 3)
+if (nargin < 2)
     max_timepoint = -1;
 end
 
-if (nargin < 4)
+if (nargin < 3)
     growth_threshold = 0.2;
 end
 
-if (nargin < 5)
+if (nargin < 4)
     model = 'modgompertz';
 end
 
 [Data, title_data] = xlsread(excel_file_name);
 dims = size(title_data);
 
-if ~exist('plots', 'dir')
-    mkdir('plots');
+plots_folder = [ excel_file_name(1:(strfind(excel_file_name, '.')-1)) ' plots/'];
+        
+if ~exist(plots_folder, 'dir')
+    mkdir(plots_folder);
 end
 
 output(1,:) = {'Sugar', 'Strain', 'Lag Time (hours)', 'Max Specific Growth Rate (1/hours)',  'Doubling Time (hours)', 'Max OD', 'Median OD', 'Notes', 'SSE' , 'R^2', 'DFE', 'ADJ R^2', 'RMSE'};
@@ -71,8 +72,11 @@ for i=1:dims(2)
         output(i,:) = {sugar,strain, lagtime, max_u, doubling_time, OD_max, median_OD_max, note, goodness.sse, goodness.rsquare, goodness.dfe, goodness.adjrsquare, goodness.rmse};
         name = [sugar '-' strain];
         title( name );
-        
-        saveas(h,['plots/' name], 'bmp');
+        sugar_folder = [plots_folder '/' sugar];
+        if ~exist(sugar_folder, 'dir')
+            mkdir(sugar_folder);
+        end
+        saveas(h,[sugar_folder '/' name], 'bmp');
         close(h);
     end
     
@@ -98,7 +102,8 @@ Strain_counts(sugar_count) = strain_count;
 %     end
 % end
 
-xlswrite(excel_output_file, output);
+output_file = ['result ' excel_file_name]; 
+xlswrite(output_file, output);
 
 
 
