@@ -29,7 +29,7 @@ if ~exist('plots', 'dir')
     mkdir('plots');
 end
 
-output(1,:) = {'Sugar', 'Strain', 'Lag Time (hours)', 'Max Specific Growth Rate (1/hours)',  'Max OD', 'Doubling Time (hours)', 'Notes'};
+output(1,:) = {'Sugar', 'Strain', 'Lag Time (hours)', 'Max Specific Growth Rate (1/hours)',  'Doubling Time (hours)', 'Max OD', 'Median OD', 'Notes', 'SSE' , 'R^2', 'DFE', 'ADJ R^2', 'RMSE'};
 time_interval =0.5;
 
 sugar = '';
@@ -63,12 +63,12 @@ for i=1:dims(2)
         strain = char(title_data(2,i));
         h = figure;
         if (max_timepoint < 0)
-            [lagtime, max_u, OD_max, doubling_time, note] = MicrobialKinetics(Data(:,i), time_interval, growth_threshold, model);
+            [lagtime, max_u, OD_max, median_OD_max, doubling_time, note, goodness] = MicrobialKinetics(Data(:,i), time_interval, growth_threshold, model);
         else
-            [lagtime, max_u, OD_max, doubling_time, note] = MicrobialKinetics(Data(1:max_timepoint/time_interval,i), time_interval, growth_threshold, model);
+            [lagtime, max_u, OD_max, median_OD_max, doubling_time, note, goodness] = MicrobialKinetics(Data(1:max_timepoint/time_interval,i), time_interval, growth_threshold, model);
         end
         lag_times(i) = lagtime;
-        output(i,:) = {sugar,strain, lagtime, max_u, OD_max, doubling_time, note};
+        output(i,:) = {sugar,strain, lagtime, max_u, doubling_time, OD_max, median_OD_max, note, goodness.sse, goodness.rsquare, goodness.dfe, goodness.adjrsquare, goodness.rmse};
         name = [sugar '-' strain];
         title( name );
         

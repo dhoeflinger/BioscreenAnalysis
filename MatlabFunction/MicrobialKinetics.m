@@ -1,4 +1,4 @@
-function [ lag_time, max_spec_growth_rate, OD_max, doubling_time, note ] = MicrobialKinetics(OD_values, time_interval, threshold, model)
+function [ lag_time, max_spec_growth_rate, max_od, median_od_max, doubling_time, note, goodness ] = MicrobialKinetics(OD_values, time_interval, threshold, model)
 %UNTITLED Summary of this function goes here
 %  time interval assumed to be half hour time blocks
 
@@ -12,36 +12,12 @@ lag_time = 0;
 doubling_time = 0;
 
 
-%find the max OD value
-[OD_max, index] = max(OD_values);
-%find the min OD value 
-[OD_min, min_index] = min(OD_values);
-
-
-
-    
-absolute_no_growth_threshold = threshold;
-
-relative_no_growth_threshold = threshold + OD_min;
-
-if (OD_max < absolute_no_growth_threshold && OD_max < relative_no_growth_threshold)
-    note = 'No Growth Detected, Check Plot';    
-    return;
-end
-
-if (OD_max < absolute_no_growth_threshold)
-    note = 'Growth did not reach absolute threshold';
-end
-
-if (OD_max < relative_no_growth_threshold)
-    note = 'Growth did not reach relative threshold';
-end
-
 
 non_log_slope =0;
-[lag_time max_spec_growth_rate] = FindRegressionCurve(OD_values,time_interval, model);
+[lag_time, max_spec_growth_rate, median_od_max, min_od, goodness] = FindRegressionCurve(OD_values,time_interval, model);
 
 
+max_od = max(OD_values);
 %this is the old way
 % for i=1:min(index+4, size(OD_values))
 % 
@@ -74,6 +50,39 @@ non_log_slope =0;
 
 %use the max specific growth rate to calc the doubling time t_d = ln(2)/u
 doubling_time = log(2) / max_spec_growth_rate;
+
+
+absolute_no_growth_threshold = threshold;
+
+relative_no_growth_threshold = threshold + min_od;
+
+if (max_od < absolute_no_growth_threshold && max_od < relative_no_growth_threshold)
+    note = 'No Growth Detected, Check Plot';    
+    lag_time = 0;
+    max_spec_growth_rate = 0;
+    doubling_time = 0;
+    clf;
+    return;
+end
+
+if (max_od < absolute_no_growth_threshold)
+    note = 'Growth did not reach absolute threshold';
+    lag_time = 0;
+    max_spec_growth_rate = 0;
+    doubling_time = 0;
+    clf;
+    return;
+end
+
+if (max_od < relative_no_growth_threshold)
+    note = 'Growth did not reach relative threshold';
+    lag_time = 0;
+    max_spec_growth_rate = 0;
+    doubling_time = 0;
+    clf;
+    return
+end
+%report both max OD and median filtered max OD to excel 
 
 lag_time_str = sprintf('lag time = %f, max growth = %f, doubling time = %f', lag_time, max_spec_growth_rate, doubling_time);
 
