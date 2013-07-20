@@ -1,10 +1,31 @@
-function [lag_time, msgr, max_od, min_od, goodness] = FindRegressionCurve(OD_values, time_interval, incubation_time, model)
+function [lag_time, msgr, max_od, min_od, goodness] = FindRegressionCurve(OD_values, time_interval, incubation_time, model, double_hump)
 
 if (nargin < 3) 
     model = 'modlogistic';
 end;
 
 timepoints = (0:size(OD_values)-1) * time_interval + incubation_time;
+
+
+
+
+if (strcmp(double_hump, 'double_hump'))
+    
+   [~, max_location] = max(OD_values);
+   [peaks, locs] = findpeaks(OD_values(1:max_location+1), 'MINPEAKDISTANCE', 6);
+   
+   [local_min, location_min] = min( OD_values(locs(1):locs(length(locs))));
+   location_min = location_min + locs(1);
+
+   OD_values_dh(1) = OD_values(1);
+   timepoints_dh(1) = timepoints(1);
+
+   OD_values_dh(2: length(OD_values)- location_min + 2) = OD_values(location_min: length(OD_values));
+   timepoints_dh(2: length(OD_values)- location_min + 2) = timepoints(location_min: length(OD_values)); 
+   
+   OD_values = OD_values_dh;
+   timepoints = timepoints_dh;
+end
 
 timepoints_orig = timepoints;
 
@@ -23,7 +44,7 @@ end;
 min_od = min(OD_values_med);
 [max_od, max_index] = max(OD_values_med);
 
-for i=1:size(OD_values_med)
+for i=1:length(OD_values_med)
     if (i < max_index)
         OD_values_adj(i) = OD_values(i); 
     else
@@ -33,8 +54,14 @@ for i=1:size(OD_values_med)
 end;
 
 
-
 max_od_adj = max(OD_values_adj);
+
+
+
+
+
+
+
 %Appl. Environ. Microbiol. June 1990 vol. 56 no. 6 1875-1881
 
 %and...

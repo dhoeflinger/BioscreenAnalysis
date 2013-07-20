@@ -14,24 +14,11 @@ doubling_time = 0;
 [max_od, max_location] = max(OD_values);
 delta_OD_max = max_od - OD_values(1); %max minus initial
 
-if (strcmp(double_hump, 'double_hump'))
-   [peaks, locs] = findpeaks(OD_values(1:max_location+1), 'MINPEAKDISTANCE', 6);
-   
-   [local_min, location_min] = min( OD_values(locs(1):locs(length(locs))))
-   location_min = location_min + locs(1);
-   j = locs(1);
-   while (j > 1 && OD_values(j) > local_min)
-      j= j-1; 
-   end
-   slope = (local_min - OD_values(j)) / (location_min - 1);
-   for i = j+1: location_min
-        OD_values(i) = OD_values(j) + slope * i;
-   end
-end
+
 
 
 non_log_slope =0;
-[lag_time, max_spec_growth_rate, median_od_max, min_od, goodness] = FindRegressionCurve(OD_values,time_interval, incubation_time, model);
+[lag_time, max_spec_growth_rate, median_od_max, min_od, goodness] = FindRegressionCurve(OD_values,time_interval, incubation_time, model, double_hump);
 
 
 %this is the old way
