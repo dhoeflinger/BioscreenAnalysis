@@ -1,10 +1,10 @@
-function [lag_time, msgr, max_od, min_od, goodness] = FindRegressionCurve(OD_values, time_interval, model)
+function [lag_time, msgr, max_od, min_od, goodness] = FindRegressionCurve(OD_values, time_interval, incubation_time, model)
 
 if (nargin < 3) 
-    model = 'modgompertz';
+    model = 'modlogistic';
 end;
 
-timepoints = (1:size(OD_values)) * time_interval;
+timepoints = (0:size(OD_values)-1) * time_interval + incubation_time;
 
 timepoints_orig = timepoints;
 
@@ -77,7 +77,7 @@ elseif (strcmpi(model, 'modgompertz'))
     %modified Gompertz curve
     func = fittype('A * exp(-exp(((B * exp(1))/ A) * (C - x) + 1)) + D');
 
-    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 -0.5 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
+    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0.000001 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
 
     lag_time = reg_curve.B;
     msgr = reg_curve.C;
@@ -104,7 +104,7 @@ elseif (strcmpi(model, 'modlogistic'))
     %Modified Logistic curve
     func = fittype('A / (1 + exp(((4*C)/A) * (B - x) + 2)) + D');
     
-    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 -0.5 0 0], 'Upper', [100 100 3 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
+    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0.000001 0 0], 'Upper', [100 100 3 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
     size_tmp = size(OD_values_adj);
 %     for id=1:size_tmp
 %         timepoints_t = timepoints;

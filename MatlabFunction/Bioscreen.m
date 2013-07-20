@@ -1,4 +1,4 @@
-function Bioscreen( excel_file_name, max_timepoint, growth_threshold, model)
+function Bioscreen( excel_file_name, max_timepoint, growth_threshold, model, double_hump)
 %Bioscreen - Calculates some metrics for growth curves, as well as graphing
 % a regression curve of the data points. 
 %PARAMS: 
@@ -14,23 +14,33 @@ if (nargin < 2)
 end
 
 if (nargin < 3)
-    growth_threshold = 0.2;
+    growth_threshold = 0.3;
 end
 
 if (nargin < 4)
-    model = 'modgompertz';
+    model = 'modlogistic';
 end
+
+if (nargin < 5)
+   double_hump = 'no_double'; 
+end
+incubation_time = 1.0;
 
 [Data, title_data] = xlsread(excel_file_name);
 dims = size(title_data);
 
-plots_folder = [ excel_file_name(1:(strfind(excel_file_name, '.')-1)) ' plots/'];
+[path, filestub, ext] = fileparts(excel_file_name); 
+
+if (~isempty(path))
+    path = [path '/'];
+end
+plots_folder = [path 'results/' filestub ' plots/'];
         
 if ~exist(plots_folder, 'dir')
     mkdir(plots_folder);
 end
 
-output(1,:) = {'Sugar', 'Strain', 'Lag Time (hours)', 'Max Specific Growth Rate (1/hours)',  'Doubling Time (hours)', 'Max OD', 'Median OD', 'Notes', 'SSE' , 'R^2', 'DFE', 'ADJ R^2', 'RMSE'};
+output(1,:) = {'Sugar', 'Strain', 'Lag Time (hours)', 'Max Specific Growth Rate (1/hours)',  'Doubling Time (hours)', 'Max OD', 'Median OD', 'Delta OD', 'Notes', 'SSE' , 'R^2', 'DFE', 'ADJ R^2', 'RMSE'};
 time_interval =0.5;
 
 sugar = '';
@@ -64,12 +74,12 @@ for i=1:dims(2)
         strain = char(title_data(2,i));
         h = figure;
         if (max_timepoint < 0)
-            [lagtime, max_u, OD_max, median_OD_max, doubling_time, note, goodness] = MicrobialKinetics(Data(:,i), time_interval, growth_threshold, model);
+            [lagtime, max_u, OD_max, median_OD_max, delta_OD_max, doubling_time, note, goodness] = MicrobialKinetics(Data(:,i), time_interval, incubation_time, growth_threshold, model, double_hump);
         else
-            [lagtime, max_u, OD_max, median_OD_max, doubling_time, note, goodness] = MicrobialKinetics(Data(1:max_timepoint/time_interval,i), time_interval, growth_threshold, model);
+            [lagtime, max_u, OD_max, median_OD_max, delta_OD_max, doubling_time, note, goodness] = MicrobialKinetics(Data(1:max_timepoint/time_interval,i), time_interval, incubation_time, growth_threshold, model, double_hump);
         end
         lag_times(i) = lagtime;
-        output(i,:) = {sugar,strain, lagtime, max_u, doubling_time, OD_max, median_OD_max, note, goodness.sse, goodness.rsquare, goodness.dfe, goodness.adjrsquare, goodness.rmse};
+        output(i,:) = {sugar,strain, lagtime, max_u, doubling_time, OD_max, median_OD_max, delta_OD_max, note, goodness.sse, goodness.rsquare, goodness.dfe, goodness.adjrsquare, goodness.rmse};
         name = [sugar '-' strain];
         title( name );
         sugar_folder = [plots_folder '/' sugar];
@@ -102,7 +112,7 @@ Strain_counts(sugar_count) = strain_count;
 %     end
 % end
 
-output_file = ['result ' excel_file_name]; 
+output_file = [ path 'results/' filestub ' results.xlsx'];
 xlswrite(output_file, output);
 
 
