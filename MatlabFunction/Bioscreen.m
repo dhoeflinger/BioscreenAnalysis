@@ -1,12 +1,18 @@
-function Bioscreen( excel_file_name, max_timepoint, growth_threshold, model, double_hump)
+function Bioscreen( excel_file_name, max_timepoint, growth_threshold, model, incubation_time, double_hump)
 %Bioscreen - Calculates some metrics for growth curves, as well as graphing
 % a regression curve of the data points. 
 %PARAMS: 
 % excel_file_name - input data file, must be formatted properly
-% max_timepoint - final timepoint of the dataset
-% growth_threshold - threshold which describes the minimum OD reading to signify growth (default 0.2)
-% model - regression model to plot the curves, options are 'modgompertz' (default),
-%         'gompertz', 'logistic', and 'modlogistic'
+% max_timepoint - final timepoint of the dataset (default automatically
+%                 determines the max timepoint from the input data)
+% growth_threshold - threshold which describes the minimum OD reading to signify growth (default 0.3)
+% model - regression model to plot the curves, options are 'modlogistic' (default),
+%         'gompertz', 'logistic', and 'modgompertz'
+% incubation_time - if you incubate your cells before recording timepoints,
+%                   this will appropriately shift your data points in time
+%                   for lag time calculations (default to 1.0)
+% double_hump - flag to indicate double hump processing, this expects all datasets to include a
+%               double/multi hump and should remove all growth humps before the "main curve" (defaulted to 0) 
 % 
 
 if (nargin < 2)
@@ -22,9 +28,13 @@ if (nargin < 4)
 end
 
 if (nargin < 5)
-   double_hump = 'no_double'; 
+   incubation_time = 1.0;
 end
-incubation_time = 1.0;
+
+if (nargin < 6)
+   double_hump = 0; 
+end
+
 
 [Data, title_data] = xlsread(excel_file_name);
 dims = size(title_data);
@@ -92,26 +102,6 @@ for i=1:dims(2)
     end
     
 end
-
-Strain_counts(sugar_count) = strain_count;
-
-
-% for j = 1:sugar_count
-%     name = char(Sugars(j));
-%     start_idx = Start_idxs(j);
-%     count = Strain_counts(j);
-%     for k = start_idx:start_idx + count-1
-%         figure;
-%         if (max_timepoint < 0)
-%             plot (Data(:,start_idx -1), Data(:,k),lag_times(k),0);
-%         else
-%             plot (Data(1:max_timepoint/time_interval,start_idx -1), Data(1:max_timepoint / time_interval,k), lag_times(k), 0);
-%         end
-%         xlabel('hours');
-%         ylim([-0.5 2]);
-%         title([name ' ' char(title_data(2,k))]);
-%     end
-% end
 
 output_file = [ path 'results/' filestub ' results.xlsx'];
 xlswrite(output_file, output);

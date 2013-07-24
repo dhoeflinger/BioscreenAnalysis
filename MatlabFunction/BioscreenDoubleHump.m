@@ -1,4 +1,4 @@
-function BioscreenDoubleHump( excel_file_name, max_timepoint, growth_threshold, model)
+function BioscreenDoubleHump( excel_file_name, max_timepoint, growth_threshold, model, incubation_time)
 %BIOSCREENDOUBLEHUMP Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -15,8 +15,12 @@ if (nargin < 4)
     model = 'modlogistic';
 end
 
+if (nargin < 5)
+    incubation_time = 1.0;
+end
 
-Bioscreen( excel_file_name, max_timepoint, growth_threshold, model, 'double_hump');
+
+Bioscreen( excel_file_name, max_timepoint, growth_threshold, model, incubation_time, 1);
 
 
 
