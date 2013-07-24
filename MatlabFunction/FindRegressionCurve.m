@@ -9,29 +9,11 @@ timepoints = (0:size(OD_values)-1) * time_interval + incubation_time;
 
 
 
-if (strcmp(double_hump, 'double_hump'))
-    
-   [~, max_location] = max(OD_values);
-   [peaks, locs] = findpeaks(OD_values(1:max_location+1), 'MINPEAKDISTANCE', 6);
-   
-   [local_min, location_min] = min( OD_values(locs(1):locs(length(locs))));
-   location_min = location_min + locs(1);
-
-   OD_values_dh(1) = OD_values(1);
-   timepoints_dh(1) = timepoints(1);
-
-   OD_values_dh(2: length(OD_values)- location_min + 2) = OD_values(location_min: length(OD_values));
-   timepoints_dh(2: length(OD_values)- location_min + 2) = timepoints(location_min: length(OD_values)); 
-   
-   OD_values = OD_values_dh;
-   timepoints = timepoints_dh;
-end
-
-timepoints_orig = timepoints;
+timepoints_med = timepoints;
 
 
-OD_values_adj(size(OD_values)) = 0;
-%log_OD_values(size(OD_values)) = 0;
+
+
 
 OD_values_med = OD_values;
 filter_width = 1;
@@ -44,7 +26,60 @@ end;
 min_od = min(OD_values_med);
 [max_od, max_index] = max(OD_values_med);
 
-for i=1:length(OD_values_med)
+
+if (strcmp(double_hump, 'double_hump'))
+    smoothing_range = 5;
+    peaks = '';
+    while (smoothing_range > 1 && length(peaks) < 1)
+        smoothed_od_values =  smooth(OD_values, smoothing_range);
+        [peaks, locs] = findpeaks(smoothed_od_values(1:min(max_index-2, length(smoothed_od_values))), 'MINPEAKDISTANCE', 3);
+        j = 1;
+        if (length(peaks) > 0)
+            peaks_thresholded = [];
+            locs_thresholded = [];
+            for i = 1:length(peaks)
+                if (peaks(i) < max_od * .85)
+                    peaks_thresholded(j) = peaks(i);
+                    locs_thresholded(j) = locs(i);
+                    j = j + 1;
+                end
+            end
+            peaks = peaks_thresholded;
+            locs = locs_thresholded;
+        end        
+        smoothing_range = smoothing_range - 1;
+    end
+    if  (length(peaks)<1)
+        lag_time = -1;
+        msgr = -1;
+        max_od = -1;
+        min_od = -1;
+        goodness.sse = -1;
+        goodness.rsquare = -1;
+        goodness.dfe = -1;
+        goodness.adjrsquare=-1; 
+        goodness.rmse =-1;
+        return;       
+    end
+
+    [~, location_min] = min( smoothed_od_values(locs(length(locs)):max_index));
+    location_min = location_min + locs(length(locs));
+
+    OD_values_dh(1) = OD_values(1);
+    timepoints_dh(1) = timepoints(1);
+
+    OD_values_dh(2: length(OD_values)- location_min + 2) = OD_values(location_min: length(OD_values));
+    timepoints_dh(2: length(OD_values)- location_min + 2) = timepoints(location_min: length(OD_values)); 
+   
+    OD_values = OD_values_dh;
+    timepoints = timepoints_dh;
+    max_index = max_index - location_min + 2;
+end
+timepoints_orig = timepoints;
+OD_values_adj(size(OD_values)) = 0;
+%log_OD_values(size(OD_values)) = 0;
+
+for i=1:length(OD_values)
     if (i < max_index)
         OD_values_adj(i) = OD_values(i); 
     else
@@ -131,7 +166,7 @@ elseif (strcmpi(model, 'modlogistic'))
     %Modified Logistic curve
     func = fittype('A / (1 + exp(((4*C)/A) * (B - x) + 2)) + D');
     
-    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0.000001 0 0], 'Upper', [100 100 3 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
+    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0.000001 0 0], 'Upper', [100 100 3 3], 'StartPoint', [2 1.5 0.2 0.1]);
     size_tmp = size(OD_values_adj);
 %     for id=1:size_tmp
 %         timepoints_t = timepoints;
@@ -178,7 +213,7 @@ ylist = [max_od_adj/4 0];
 
 plot (reg_curve, timepoints_orig, OD_values);
 hold on 
-plot (timepoints_orig, OD_values_med);
+plot (timepoints_med, OD_values_med);
 hold on 
 %plot (timepoints, log_OD_values);
 line(xlist, ylist);

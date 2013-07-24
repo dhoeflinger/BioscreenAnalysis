@@ -90,6 +90,11 @@ if (max_od < relative_no_growth_threshold)
     clf;
     return
 end
+
+if (strcmp(double_hump, 'double_hump') && lag_time == -2)
+   note = 'No Double Hump Detected'; 
+   return;
+end
 %report both max OD and median filtered max OD to excel 
 
 lag_time_str = sprintf('lag time = %f, max growth = %f, doubling time = %f', lag_time, max_spec_growth_rate, doubling_time);

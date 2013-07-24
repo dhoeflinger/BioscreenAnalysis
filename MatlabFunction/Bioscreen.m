@@ -79,6 +79,7 @@ for i=1:dims(2)
             [lagtime, max_u, OD_max, median_OD_max, delta_OD_max, doubling_time, note, goodness] = MicrobialKinetics(Data(1:max_timepoint/time_interval,i), time_interval, incubation_time, growth_threshold, model, double_hump);
         end
         lag_times(i) = lagtime;
+        
         output(i,:) = {sugar,strain, lagtime, max_u, doubling_time, OD_max, median_OD_max, delta_OD_max, note, goodness.sse, goodness.rsquare, goodness.dfe, goodness.adjrsquare, goodness.rmse};
         name = [sugar '-' strain];
         title( name );
