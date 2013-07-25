@@ -1,6 +1,6 @@
-function Bioscreen( file_or_dir, varargin)
+function GrowthCurveModeler( file_or_dir, varargin)
 
-%Bioscreen - Calculates some metrics for growth curves, as well as graphing
+%GrowthCurveModeler - Calculates some metrics for growth curves, as well as graphing
 %a regression curve of the data points. 
 %
 %Required parameter: 
@@ -29,11 +29,11 @@ function Bioscreen( file_or_dir, varargin)
 %
 %
 %  Examples:
-%     Bioscreen('dataset.xlsx', 'DoubleHump', 'on', 'Threshold', 0.2);
+%     GrowthCurveModeler('dataset.xlsx', 'DoubleHump', 'on', 'Threshold', 0.2);
 %
-%     Bioscreen('.', 'IncubationTime', 1.5);
+%     GrowthCurveModeler('.', 'IncubationTime', 1.5);
 % 
-%     Bioscreen('folder_containing_xlsxfiles');
+%     GrowthCurveModeler('folder_containing_xlsxfiles');
 
 
 
@@ -42,7 +42,7 @@ if (isdir(file_or_dir))
     runnable_files = dir([file_or_dir '/' '*.xlsx']);
 
     for i = 1:length(runnable_files)
-        Bioscreen([file_or_dir '/' runnable_files(i).name], varargin{:}); 
+        GrowthCurveModeler([file_or_dir '/' runnable_files(i).name], varargin{:}); 
     end
     return;
 end
