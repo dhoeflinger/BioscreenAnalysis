@@ -8,16 +8,16 @@ function GrowthCurveModeler( file_or_dir, varargin)
 %
 % Optional parameters:
 %
-% MaxTimepoint - value (default is total specified in dataset)
+% MaxTimepoint - value {default is total specified in dataset}
 %   Final timepoint of the dataset 
 %
-% Threshold - value (default 0.3)
+% Threshold - value {default 0.3}
 %   Threshold which describes the minimum OD reading to signify growth (default 0.3)
 % 
 % Model - [{'modlogistic'} | 'gompertz' | 'logistic' | 'modgompertz']
 %   Regression model to plot the curves
 %
-% IncubationTime - value (default 1.0)
+% IncubationTime - value {default 1.0}
 %   If you incubate your cells before recording timepoints,
 %   this will appropriately shift your data points in time
 %   for lag time calculations 
@@ -166,62 +166,11 @@ function [ lag_time, max_spec_growth_rate, max_od,  median_od_max, delta_OD_max,
 %  time interval assumed to be half hour time blocks
 
 %set to zero initially
-max_spec_growth_rate = 0;
-note = '';
-lag_time = 0;
-doubling_time = 0;
 
 [max_od, max_location] = max(OD_values);
 
-[lag_time, max_spec_growth_rate, median_od_max, min_od, goodness, double_hump_found] = FindRegressionCurve(OD_values,time_interval, incubation_time, model, double_hump);
 
-
-delta_OD_max = median_od_max - min(OD_values(1:4)); %max minus initial (min of first 4 elements to remove ouliers)
-
-%use the max specific growth rate to calc the doubling time t_d = ln(2)/u
-doubling_time = log(2) / max_spec_growth_rate;
-
-
-absolute_no_growth_threshold = threshold;
-
-relative_no_growth_threshold = threshold + min_od;
-
-if (goodness.rsquare < 0.98)
-   note = 'Bad r^2, Check Regression Plot'; 
-end
-
-
-if (max_od < absolute_no_growth_threshold && max_od < relative_no_growth_threshold)
-    note = 'No Growth Detected, Check Plot';    
-    lag_time = 0;
-    max_spec_growth_rate = 0;
-    doubling_time = 0;
-    clf;
-    return;
-end
-
-if (max_od < absolute_no_growth_threshold)
-    note = 'Growth did not reach absolute threshold';
-    lag_time = 0;
-    max_spec_growth_rate = 0;
-    doubling_time = 0;
-    clf;
-    return;
-end
-
-if (max_od < relative_no_growth_threshold)
-    note = 'Growth did not reach relative threshold';
-    lag_time = 0;
-    max_spec_growth_rate = 0;
-    doubling_time = 0;
-    clf;
-    return
-end
-
-if (double_hump==1 && double_hump_found == 0)
-   note = 'No Double Hump Detected'; 
-   return;
-end
+[lag_time, max_spec_growth_rate, median_od_max, delta_OD_max, doubling_time, goodness, note] = FindRegressionCurve(OD_values,time_interval, incubation_time, model, double_hump, threshold);
 
 %report both max OD and median filtered max OD to excel 
 
@@ -231,9 +180,13 @@ legend(lag_time_str, 'location', 'SouthOutside');
 
 end
 
-function [lag_time, msgr, max_od, min_od, goodness, double_hump_found] = FindRegressionCurve(OD_values, time_interval, incubation_time, model, double_hump)
+function [lag_time, msgr, median_od_max, delta_OD_max, doubling_time, goodness, note] = FindRegressionCurve(OD_values, time_interval, incubation_time, model, double_hump, threshold)
 %FindRegressionCurve - using the parameters specified, attempts to fit a 
 % regression best fit line of the specified model to the data supplied.
+
+msgr = 0;
+note = '';
+lag_time = 0;
 
 
 timepoints = (0:size(OD_values)-1) * time_interval + incubation_time;
@@ -241,17 +194,18 @@ timepoints = (0:size(OD_values)-1) * time_interval + incubation_time;
 
 timepoints_med = timepoints;
 
-
 OD_values_med = OD_values;
+
 filter_width = 1;
 for i=1+filter_width:size(OD_values)-filter_width
     sel = i - filter_width : i + filter_width;
-    OD_values_med(i) = median(OD_values(sel)); 
-    
+    OD_values_med(i) = median(OD_values(sel));  
 end;
 
 min_od = min(OD_values_med);
-[max_od, max_index] = max(OD_values_med);
+
+   
+[median_od_max, max_index] = max(OD_values_med);
 
 double_hump_found = 0;
 if (double_hump && max_index > 4)
@@ -299,9 +253,9 @@ OD_values_adj(size(OD_values)) = 0;
 
 for i=1:length(OD_values)
     if (i < max_index)
-        OD_values_adj(i) = OD_values(i); 
+        OD_values_adj(i) = OD_values(i); % should we use the median filtered data or just the raw data? (changed to median 7/6/14) 
     else
-        OD_values_adj(i) = max_od;      
+        OD_values_adj(i) = median_od_max;      
     end
 end;
 
@@ -398,18 +352,70 @@ elseif (strcmpi(model, 'modlogistic'))
 %
 end;
 
+delta_OD_max = median_od_max - min(OD_values(1:4)); %max minus initial (min of first 4 elements to remove ouliers)
+
+%use the max specific growth rate to calc the doubling time t_d = ln(2)/u
+doubling_time = log(2) / msgr;
+
+
 lag_time = max([lag_time 0]);
+
+
+if (goodness.rsquare < 0.98)
+   note = 'Bad r^2, Check Regression Plot'; 
+end
+
+noreg = 0;
+
+
+absolute_no_growth_threshold = threshold;
+
+relative_no_growth_threshold = threshold + min_od;
+
+if (median_od_max < absolute_no_growth_threshold && median_od_max < relative_no_growth_threshold)
+    note = 'No Growth Detected, Check Plot';    
+    lag_time = 0;
+    msgr = 0;
+    doubling_time = 0;
+    noreg = 1;    
+end
+
+if (median_od_max < absolute_no_growth_threshold)
+    note = 'Growth did not reach absolute threshold';
+    lag_time = 0;
+    msgr = 0;
+    doubling_time = 0;
+    noreg = 1;
+end
+
+if (median_od_max < relative_no_growth_threshold)
+    note = 'Growth did not reach relative threshold';
+    lag_time = 0;
+    msgr = 0;
+    doubling_time = 0;
+    noreg = 1;
+end
+
+if (double_hump==1 && double_hump_found == 0)
+   note = 'No Double Hump Detected'; 
+end
 
 xlist = [lag_time lag_time];
 ylist = [ -10 10];
 
-plot (reg_curve, timepoints_orig, OD_values);
+plot(timepoints_orig, OD_values,'.')
 hold on 
-plot (timepoints_med, OD_values_med);
+if (noreg == 0)
+    plot(reg_curve);
+end
+hold on 
+plot(timepoints_med, OD_values_med);
 hold on 
 %plot (timepoints, log_OD_values);
-line(xlist, ylist, 'Color', 'm', 'LineStyle', '--');
-ylim([min(-0.2, min_od) max(1.6, 1.05*max_od)])
+if (noreg == 0)
+    line(xlist, ylist, 'Color', 'm', 'LineStyle', '--');
+end
+ylim([min(-0.2, min_od) max(1.6, 1.05*median_od_max)])
 xlabel('Time (Hours)');
 ylabel('OD (600nm)');
 
