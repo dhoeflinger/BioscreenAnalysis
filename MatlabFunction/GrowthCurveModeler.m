@@ -219,7 +219,7 @@ if (double_hump && max_index > 4)
             peaks_thresholded = [];
             locs_thresholded = [];
             for i = 1:length(peaks)
-                if (peaks(i) < max_od * .85)
+                if (peaks(i) < median_od_max * .85)
                     peaks_thresholded(j) = peaks(i);
                     locs_thresholded(j) = locs(i);
                     j = j + 1;
