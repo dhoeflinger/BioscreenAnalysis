@@ -94,7 +94,7 @@ if ~exist(plots_folder, 'dir')
     mkdir(plots_folder);
 end
 
-output(1,:) = {'Sugar', 'Strain', 'Lag Time (hours)', 'Max Specific Growth Rate (1/hours)',  'Doubling Time (hours)', 'Max OD', 'Median OD', 'Delta OD', 'Notes', 'SSE' , 'R^2', 'DFE', 'ADJ R^2', 'RMSE'};
+output(1,:) = {'Sugar', 'Strain', 'Lag Time (hours)', 'Max Specific Growth Rate (1/hours)',  'Doubling Time (hours)', 'Max OD', 'Median OD', 'Delta OD', 'Notes', 'R^2', 'SSE' , 'RMSE'};
 time_interval =0.5;
 
 sugar = '';
@@ -134,7 +134,7 @@ for i=1:dims(2)
         end
         lag_times(i) = lagtime;
         
-        output(i,:) = {sugar,strain, lagtime, max_u, doubling_time, OD_max, median_OD_max, delta_OD_max, note, goodness.sse, goodness.rsquare, goodness.dfe, goodness.adjrsquare, goodness.rmse};
+        output(i,:) = {sugar,strain, lagtime, max_u, doubling_time, OD_max, median_OD_max, delta_OD_max, note, goodness.rsquare,  goodness.sse, goodness.rmse};
         name = [sugar '-' strain];
         title( name );
         sugar_folder = [plots_folder '/' sugar];
@@ -148,6 +148,7 @@ for i=1:dims(2)
 end
 
 output_file = [ path 'results/' filestub ' results.xlsx'];
+delete(output_file);
 xlswrite(output_file, output);
 
 
@@ -368,33 +369,21 @@ end
 noreg = 0;
 
 
-absolute_no_growth_threshold = threshold;
-
-relative_no_growth_threshold = threshold + min_od;
-
-if (median_od_max < absolute_no_growth_threshold && median_od_max < relative_no_growth_threshold)
+% no longer checking the absolute threshold, only delta OD (relative to
+% min OD)
+if (delta_OD_max < threshold)
     note = 'No Growth Detected, Check Plot';    
-    lag_time = 0;
-    msgr = 0;
-    doubling_time = 0;
+    lag_time = ' ';
+    msgr = ' ';
+    doubling_time = ' ';
     noreg = 1;    
+    goodness.rsquare = ' ';
+    goodness.sse = ' ';
+    goodness.rmse = ' ';
+    goodness.dfe = ' ';
+    goodness.rsquare_adj = ' ';
 end
 
-if (median_od_max < absolute_no_growth_threshold)
-    note = 'Growth did not reach absolute threshold';
-    lag_time = 0;
-    msgr = 0;
-    doubling_time = 0;
-    noreg = 1;
-end
-
-if (median_od_max < relative_no_growth_threshold)
-    note = 'Growth did not reach relative threshold';
-    lag_time = 0;
-    msgr = 0;
-    doubling_time = 0;
-    noreg = 1;
-end
 
 if (double_hump==1 && double_hump_found == 0)
    note = 'No Double Hump Detected'; 
