@@ -148,7 +148,9 @@ for i=1:dims(2)
 end
 
 output_file = [ path 'results/' filestub ' results.xlsx'];
-delete(output_file);
+if (exist(output_file, 'file'))
+	delete(output_file);
+end
 xlswrite(output_file, output);
 
 
@@ -254,7 +256,7 @@ OD_values_adj(size(OD_values)) = 0;
 
 for i=1:length(OD_values)
     if (i < max_index)
-        OD_values_adj(i) = OD_values(i); % should we use the median filtered data or just the raw data? (changed to median 7/6/14) 
+        OD_values_adj(i) = OD_values(i); % should we use the median filtered data or just the raw data? 
     else
         OD_values_adj(i) = median_od_max;      
     end
@@ -303,7 +305,7 @@ elseif (strcmpi(model, 'modgompertz'))
     %modified Gompertz curve
     func = fittype('A * exp(-exp(((B * exp(1))/ A) * (C - x) + 1)) + D');
 
-    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0.000001 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
+    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0.000001 0 -1], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
 
     lag_time = reg_curve.B;
     msgr = reg_curve.C;
@@ -313,7 +315,7 @@ elseif (strcmpi(model, 'logistic'))
     %Logistic curve
     func = fittype('A / (1+exp(-C*(x-B))) + D');
     
-    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0 0 0], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
+    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0 0 -1], 'Upper', [100 100 2 3], 'StartPoint', [0.5 1.5 0.2 0.1]);
 
     inflection_point = reg_curve.B;
     msgr = reg_curve.C;
@@ -330,7 +332,7 @@ elseif (strcmpi(model, 'modlogistic'))
     %Modified Logistic curve
     func = fittype('A / (1 + exp(((4*C)/A) * (B - x) + 2)) + D');
     
-    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0.000001 0 0], 'Upper', [100 100 3 3], 'StartPoint', [2 1.5 0.2 0.1]);
+    [reg_curve, goodness] = fit(timepoints', OD_values_adj', func, 'Lower', [0 0.000001 0 -1], 'Upper', [100 100 3 3], 'StartPoint', [2 1.5 0.2 0.1]);
     size_tmp = size(OD_values_adj);
    
     lag_time = reg_curve.B;
