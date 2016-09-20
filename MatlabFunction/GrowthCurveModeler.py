@@ -19,7 +19,7 @@ def gompertz(x, A, B, C, D):
 
 
 def modgompertz(x, A, B, C, D):
-    return A * np.exp(-np.exp(((B * np.exp(1))/A) * (C-x) + 1)) + D
+    return A * np.exp(-np.exp(((B * np.e)/A) * (C-x) + 1)) + D
 
 
 def logistic(x, A, B, C, D):
@@ -163,7 +163,7 @@ def FindRegressionCurve(OD_values, time_interval, incubation_time, model, double
         timepoints_adj.append(i * time_interval + incubation_time)
         if (i >= initial_index):
            if (i <= max_index):
-               OD_values_adj.append(OD_values_med[i]) # should we use the median filtered data or just the raw data (changed to median 7/6/14) looks like it is still not median...
+               OD_values_adj.append(OD_values_med[i])
            else:
                OD_values_adj.append(median_od_max)
     
@@ -290,8 +290,10 @@ def FindRegressionCurve(OD_values, time_interval, incubation_time, model, double
     if (model == 'gompertz' or model == 'logistic'):
         inflection_point = coef[1]
         msgr = coef[2]
-        offset = 0.1
-        lag_time = inflection_point * time_interval - (np.log(fitfunc(inflection_point,coef[0],coef[1],coef[2], coef[3]) + offset) - np.log(OD_values_adj[0] + offset)) / msgr
+        #offset = 1
+        #lag_time = inflection_point * time_interval - (np.log(fitfunc(inflection_point,coef[0],coef[1],coef[2], coef[3]) + offset) - np.log(OD_values_adj[0] + offset)) / msgr
+        lag_time = inflection_point * time_interval - (fitfunc(inflection_point,coef[0],coef[1],coef[2], coef[3]) - fitfunc(0,coef[0],coef[1],coef[2],coef[3])) / msgr
+
     elif (model == 'modgompertz' or model == 'modlogistic'):
         lag_time = coef[1]
         msgr = coef[2]
@@ -391,7 +393,7 @@ def GrowthCurveModeler( file_or_dir, **varargin):
      Model - [{'modlogistic'} | 'gompertz' | 'logistic' | 'modgompertz']
        Regression model to plot the curves
 
-     IncubationTime - value {default 1.0}
+     PreIncubationTime - value {default 1.0}
        If you incubate your cells before recording timepoints,
        this will appropriately shift your data points in time
        for lag time calculations 
@@ -439,7 +441,7 @@ def GrowthCurveModeler( file_or_dir, **varargin):
             threshold = v
         if (k=='Model'):
             model = v
-        if (k=='IncubationTime'):
+        if (k=='PreIncubationTime'):
             incubation_time = v
         if (k=='DoubleHump'):
             double_hump = v
